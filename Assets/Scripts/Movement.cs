@@ -1,12 +1,25 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Movement : MonoBehaviour
 {
     public float moveSpeed = 2f; // Speed of player movement
-    public int gridSize = 8; // Size of the grid
     public float movementCooldown = 0.2f; // Cooldown between movements
+    public Vector2 startingPosition = new Vector2(0, 0); // Starting position of the player
     private float cooldownTimer = 0f; // Timer for movement cooldown
-    private Vector2Int currentPosition; // Current position of the player in grid coordinates
+    private Vector2 currentPosition; // Current position of the player
+    private Vector2Int gridPosition; // Current position of the player in grid coordinates
+    public Vector3Int currentTilePosition; // Current tile position of the player
+    public Tilemap tilemap; // Reference to the Tilemap component
+
+
+    private void Start()
+    {
+        currentPosition = startingPosition;
+        transform.position = new Vector3(currentPosition.x * 2, currentPosition.y * 2, 0) * moveSpeed;
+        gridPosition = Vector2Int.RoundToInt(currentPosition);
+        currentTilePosition = tilemap.WorldToCell(transform.position);
+    }
 
     private void Update()
     {
@@ -21,28 +34,67 @@ public class Movement : MonoBehaviour
             float verticalInput = Input.GetAxisRaw("Vertical");
 
             // Calculate movement direction
-            Vector2Int movement = new Vector2Int(Mathf.RoundToInt(horizontalInput), Mathf.RoundToInt(verticalInput));
+            Vector2 movement = new Vector2(horizontalInput, verticalInput);
 
-            // Check if movement is valid
-            if (IsValidMove(movement))
+            // Check the tile the player is currently on
+            TileBase currentTile = tilemap.GetTile(currentTilePosition);
+            if (currentTile != null)
             {
-                // Update current position
-                currentPosition += movement;
-
-                // Move player object (scaled by moveSpeed)
-                transform.position = new Vector3(currentPosition.x * 2, currentPosition.y * 2, 0) * moveSpeed;
-
-                // Reset cooldown timer
-                cooldownTimer = movementCooldown;
+                // Apply movement restrictions based on the current tile
+                if (currentTile.name == "tile_4" && horizontalInput > 0)
+                    MovePlayer(movement);
+                else if ((currentTile.name == "tile_5" || currentTile.name == "tile_13") && (horizontalInput != 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_6" && (horizontalInput < 0 || verticalInput > 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_7" && (horizontalInput > 0 || verticalInput != 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_8" && (horizontalInput < 0 || verticalInput < 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_9" && (horizontalInput > 0 || verticalInput > 0))
+                    MovePlayer(movement);
+                else if ((currentTile.name == "tile_10" || currentTile.name == "tile_14") && (verticalInput != 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_11" && (horizontalInput > 0 || verticalInput < 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_12" && (horizontalInput != 0 || verticalInput > 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_15" && (verticalInput < 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_16")
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_17" && (verticalInput != 0 || horizontalInput < 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_18" && (horizontalInput < 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_19" && (verticalInput > 0))
+                    MovePlayer(movement);
+                else if (currentTile.name == "tile_20" && (horizontalInput < 0 || verticalInput < 0 || horizontalInput > 0))
+                    MovePlayer(movement);
             }
+
+            // Reset cooldown timer
+            cooldownTimer = movementCooldown;
         }
     }
 
-    // Check if the movement is within the grid bounds
-    private bool IsValidMove(Vector2Int movement)
+    private void MovePlayer(Vector2 movement)
     {
-        Vector2Int newPosition = currentPosition + movement;
-        return newPosition.x >= 0 && newPosition.x < gridSize && newPosition.y >= 0 && newPosition.y < gridSize;
+        // Update current position
+        currentPosition += movement;
+
+        // Move player object (scaled by moveSpeed)
+        transform.position = new Vector3(currentPosition.x * 2, currentPosition.y * 2, 0) * moveSpeed;
+
+        // Update grid position
+        gridPosition = Vector2Int.RoundToInt(currentPosition);
+
+        // Update current tile position
+        currentTilePosition = tilemap.WorldToCell(transform.position);
+
+        // Log movement
+        Debug.Log("Player moved to: " + currentTilePosition);
     }
 }
+
 
