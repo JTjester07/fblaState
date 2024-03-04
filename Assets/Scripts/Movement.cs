@@ -1,18 +1,22 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 public class Movement : MonoBehaviour
 {
-    public float moveSpeed = 2f; // Speed of player movement
-    public float movementCooldown = 0.2f; // Cooldown between movements
-    public Vector2 startingPosition = new Vector2(0, 0); // Starting position of the player
-    private float cooldownTimer = 0f; // Timer for movement cooldown
-    private Vector2 currentPosition; // Current position of the player
-    private Vector2Int gridPosition; // Current position of the player in grid coordinates
-    public Vector3Int currentTilePosition; // Current tile position of the player
-    public Tilemap tilemap; // Reference to the Tilemap component
-    public Tilemap tilemapTwo; // Reference to the second Tilemap component
-    public int points = 0; // Points variable
+    // Variables
+    public float moveSpeed = 2f;
+    public float movementCooldown = 0.2f;
+    public Vector2 startingPosition = new Vector2(0, 0);
+    private float cooldownTimer = 0f;
+    private Vector2 currentPosition;
+    private Vector2Int gridPosition;
+    public Vector3Int currentTilePosition;
+    public Tilemap tilemap;
+    public Tilemap tilemapTwo;
+    public string nextlevel;
+
+    private bool isMoving = false; // Flag to indicate whether the player is currently moving
 
     private void Start()
     {
@@ -24,24 +28,23 @@ public class Movement : MonoBehaviour
 
     private void Update()
     {
-        // Update cooldown timer
-        cooldownTimer -= Time.deltaTime;
+        // Update cooldown timer if not moving
+        if (!isMoving)
+            cooldownTimer -= Time.deltaTime;
 
-        // Handle player input if cooldown is over
-        if (cooldownTimer <= 0f)
+        // Only process movement input if not already moving and cooldown is over
+        if (!isMoving && cooldownTimer <= 0f)
         {
             // Handle player input
             float horizontalInput = Input.GetAxisRaw("Horizontal");
             float verticalInput = Input.GetAxisRaw("Vertical");
 
-            // Calculate movement direction
             Vector2 movement = new Vector2(horizontalInput, verticalInput);
 
             // Check the tile the player is currently on
             TileBase currentTile = tilemap.GetTile(currentTilePosition);
             if (currentTile != null)
             {
-                // Apply movement restrictions based on the current tile
                 if (currentTile.name == "tile_4" && horizontalInput > 0)
                     MovePlayer(movement);
                 else if ((currentTile.name == "tile_5" || currentTile.name == "tile_13") && (horizontalInput != 0))
@@ -84,14 +87,14 @@ public class Movement : MonoBehaviour
         // Update current position
         currentPosition += movement;
 
-        // Move player object (scaled by moveSpeed)
         transform.position = new Vector3(currentPosition.x * 2, currentPosition.y * 2, 0) * moveSpeed;
 
-        // Update grid position
         gridPosition = Vector2Int.RoundToInt(currentPosition);
 
-        // Update current tile position
         currentTilePosition = tilemap.WorldToCell(transform.position);
+
+        // Set flag to indicate the player is moving
+        isMoving = true;
 
         // Check if player moved onto a tile on the points Tilemap
         TileBase currentTileTwo = tilemapTwo.GetTile(currentTilePosition);
@@ -99,18 +102,27 @@ public class Movement : MonoBehaviour
         {
             if (currentTileTwo.name == "tile_2")
             {
-                points += 5;
-                // Remove the tile from tilemapTwo
+                MainMenu.points += 5;
                 tilemapTwo.SetTile(currentTilePosition, null);
             }
             else if (currentTileTwo.name == "tile_3")
             {
-                points += 10;
-                // Remove the tile from tilemapTwo
+                MainMenu.points += 10;
                 tilemapTwo.SetTile(currentTilePosition, null);
             }
+            else if (currentTileTwo.name == "tile_0")
+            {
+                SceneManager.LoadScene(nextlevel);
+            }
         }
+
+        // Set flag to indicate the player has finished moving after cooldown
+        Invoke("FinishMovement", movementCooldown);
+    }
+
+    // Method to finish the movement after cooldown
+    private void FinishMovement()
+    {
+        isMoving = false;
     }
 }
-
-

@@ -5,6 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+
+    public static int points = 0;
+
     // Called when the button using this script is pressed    
     public void PlayGame()
     {
