@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 
 public class Movement : MonoBehaviour
 {
-    // Variables
+    // variables
     public float moveSpeed = 2f;
     public float movementCooldown = 0.2f;
     public Vector2 startingPosition = new Vector2(0, 0);
@@ -16,8 +16,6 @@ public class Movement : MonoBehaviour
     public Tilemap tilemapTwo;
     public string nextlevel;
 
-    private bool isMoving = false; // Flag to indicate whether the player is currently moving
-
     private void Start()
     {
         currentPosition = startingPosition;
@@ -28,12 +26,10 @@ public class Movement : MonoBehaviour
 
     private void Update()
     {
-        // Update cooldown timer if not moving
-        if (!isMoving)
-            cooldownTimer -= Time.deltaTime;
+        // Update cooldown timer
+        cooldownTimer -= Time.deltaTime;
 
-        // Only process movement input if not already moving and cooldown is over
-        if (!isMoving && cooldownTimer <= 0f)
+        if (cooldownTimer <= 0f)
         {
             // Handle player input
             float horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -93,9 +89,6 @@ public class Movement : MonoBehaviour
 
         currentTilePosition = tilemap.WorldToCell(transform.position);
 
-        // Set flag to indicate the player is moving
-        isMoving = true;
-
         // Check if player moved onto a tile on the points Tilemap
         TileBase currentTileTwo = tilemapTwo.GetTile(currentTilePosition);
         if (currentTileTwo != null)
@@ -115,14 +108,5 @@ public class Movement : MonoBehaviour
                 SceneManager.LoadScene(nextlevel);
             }
         }
-
-        // Set flag to indicate the player has finished moving after cooldown
-        Invoke("FinishMovement", movementCooldown);
-    }
-
-    // Method to finish the movement after cooldown
-    private void FinishMovement()
-    {
-        isMoving = false;
     }
 }
