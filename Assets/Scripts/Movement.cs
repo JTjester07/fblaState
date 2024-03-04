@@ -11,7 +11,8 @@ public class Movement : MonoBehaviour
     private Vector2Int gridPosition; // Current position of the player in grid coordinates
     public Vector3Int currentTilePosition; // Current tile position of the player
     public Tilemap tilemap; // Reference to the Tilemap component
-
+    public Tilemap tilemapTwo; // Reference to the second Tilemap component
+    public int points = 0; // Points variable
 
     private void Start()
     {
@@ -92,8 +93,23 @@ public class Movement : MonoBehaviour
         // Update current tile position
         currentTilePosition = tilemap.WorldToCell(transform.position);
 
-        // Log movement
-        Debug.Log("Player moved to: " + currentTilePosition);
+        // Check if player moved onto a tile on the points Tilemap
+        TileBase currentTileTwo = tilemapTwo.GetTile(currentTilePosition);
+        if (currentTileTwo != null)
+        {
+            if (currentTileTwo.name == "tile_2")
+            {
+                points += 5;
+                // Remove the tile from tilemapTwo
+                tilemapTwo.SetTile(currentTilePosition, null);
+            }
+            else if (currentTileTwo.name == "tile_3")
+            {
+                points += 10;
+                // Remove the tile from tilemapTwo
+                tilemapTwo.SetTile(currentTilePosition, null);
+            }
+        }
     }
 }
 
